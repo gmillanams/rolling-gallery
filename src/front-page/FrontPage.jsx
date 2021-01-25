@@ -1,9 +1,11 @@
-import { append, compose, composeWith, head, lensProp, map, over, reduce, then } from 'ramda'
-import React, { Component } from 'react'
+import React, { useEffect, useState } from 'react'
+import { head, map } from 'ramda'
+
 import { fetchGallery } from '../fetch-gallery'
 import Footer from '../footer/Footer.jsx'
 import GalleryHead from '../gallery-head/GalleryHead.jsx'
 import Spinner from '../spinner/Spinner.jsx'
+
 import './FrontPage.css'
 
 const galleries = [
@@ -18,48 +20,42 @@ const galleries = [
   'mechanical_gifs',
   'oddlysatisfying',
   'combinedgifs',
-  'unexpected'
+  'unexpected',
 ]
 
-const fetchAsGallery = composeWith(then,
-  [head, fetchGallery(0)]
-)
+export const FrontPage = () => {
+  const [fetching, setFetching] = useState(true)
+  const [galleryHeads, setGalleryHeads] = useState([])
 
-const renderSequentially = onSingleDownloaded => (sequence, current) =>
-  sequence.then(() => current.then(onSingleDownloaded))
-
-const renderGalleries = ({ onSingleDownloaded, onAllDownloaded }) => compose(
-  composeWith(then,[onAllDownloaded, reduce(renderSequentially(onSingleDownloaded), Promise.resolve())]),
-  map(fetchAsGallery)
-)
-
-export default class FrontPage extends Component {
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      fetching: true,
-      galleryHeads: []
+  useEffect(() => {
+    if (galleryHeads.length != galleries.length) {
+      fetchGallery(0, galleries[galleryHeads.length]).then((galleryData) => {
+        const galleryHead = head(galleryData)
+        setGalleryHeads([...galleryHeads, galleryHead])
+      })
+    } else {
+      setFetching(false)
     }
-  }
+  }, [galleryHeads])
 
-  componentDidMount() {
-    renderGalleries({
-      onSingleDownloaded: gallery => this.setState(over(lensProp('galleryHeads'), append(gallery))),
-      onAllDownloaded: () => this.setState({ fetching: false })
-    })(galleries)
-  }
-
-  render() {
-    const { fetching, galleryHeads } = this.state
-    return (
-      <div className='front-page'>
-        <div className='galleries'>
-          {map(galleryHead => <GalleryHead item={galleryHead} key={galleryHead.id}/>, galleryHeads)}
-          {fetching && <div className='gallery-head-spinner'><Spinner/></div>}
-        </div>
-        <Footer/>
+  return (
+    <div className='front-page'>
+      <div className='galleries'>
+        {map(
+          (galleryHead) => (
+            <GalleryHead item={galleryHead} key={galleryHead.id} />
+          ),
+          galleryHeads
+        )}
+        {fetching && (
+          <div className='gallery-head-spinner'>
+            <Spinner />
+          </div>
+        )}
       </div>
-    )
-  }
+      <Footer />
+    </div>
+  )
 }
+
+export default FrontPage

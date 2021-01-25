@@ -2,7 +2,7 @@ import { assoc, compose, composeWith, includes, curry, F, filter, map, path, pro
 import { fetchHead, fetchJson } from './fetch'
 
 const isDisplayable = image => fetchHead(image.link)
-  .then(T)
+  .then((data) => data.status === 200)
   .catch(F)
   .then(isDisplayAble => assoc('isDisplayAble', isDisplayAble, image))
 

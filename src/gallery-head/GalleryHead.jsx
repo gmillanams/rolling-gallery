@@ -1,35 +1,28 @@
 import './GalleryHead.css'
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import Spinner from '../spinner/Spinner.jsx'
 import GalleryItem from '../gallery-item/GalleryItem.jsx'
 
-export default class GalleryHead extends Component {
-  constructor(props) {
-    super(props)
+export const GalleryHead = ({ item }) => {
+  const [fetching, setFetching] = useState(true)
 
-    this.state = {
-      fetching: true
-    }
+  const markReady = () => {
+    setFetching(false)
   }
 
-  markReady() {
-    this.setState({
-      fetching: false
-    })
-  }
+  const { section } = item
 
-  render() {
-    const { item } = this.props
-    const { section, id } = item
-    const { fetching } = this.state
-
-    return (
-      <a className='gallery-head' href={`?r=${section}`}>
-        {fetching && <span className='gallery-head__spinner'><Spinner/></span>}
-        {fetching && <img className='gallery-head__thumbnail' src={`https://i.imgur.com/${id}b.jpg`}/>}
-        <GalleryItem playOnHover item={item} onLoad={() => this.markReady()}/>
-        <span className='gallery-head__name'>{section}</span>
-      </a>
-    )
-  }
+  return (
+    <a className='gallery-head' href={`?r=${section}`}>
+      {fetching && (
+        <span className='gallery-head__spinner'>
+          <Spinner />
+        </span>
+      )}
+      <GalleryItem playOnHover item={item} onLoad={() => markReady()} />
+      <span className='gallery-head__name'>{section}</span>
+    </a>
+  )
 }
+
+export default GalleryHead
