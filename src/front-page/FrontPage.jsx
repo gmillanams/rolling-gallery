@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { head, map } from 'ramda'
+import React, {  Suspense, SuspenseList } from 'react'
+import { head } from 'ramda'
 
 import { fetchGallery } from '../fetch-gallery'
 import Footer from '../footer/Footer.jsx'
@@ -7,6 +7,7 @@ import GalleryHead from '../gallery-head/GalleryHead.jsx'
 import Spinner from '../spinner/Spinner.jsx'
 
 import './FrontPage.css'
+import {createResource} from '../utils/suspense'
 
 const galleries = [
   'brokengifs',
@@ -20,42 +21,49 @@ const galleries = [
   'mechanical_gifs',
   'oddlysatisfying',
   'combinedgifs',
-  'unexpected',
+  'unexpected'
 ]
 
+let galleryHeads = []
+
+const fetchGalleryPromise = (gallery) => fetchGallery(0, gallery).then((galleryData) => {
+  const galleryHead = head(galleryData)
+  return galleryHead
+})
+
+const GalleryContainer = ({gallery}) => {
+  if  (!galleryHeads[gallery]) {
+    galleryHeads[gallery] = createResource(fetchGalleryPromise(gallery))
+  }
+
+  return <GalleryHead item={galleryHeads[gallery].read()} key={gallery.id}/>
+}
+
 export const FrontPage = () => {
-  const [fetching, setFetching] = useState(true)
-  const [galleryHeads, setGalleryHeads] = useState([])
-
-  useEffect(() => {
-    if (galleryHeads.length != galleries.length) {
-      fetchGallery(0, galleries[galleryHeads.length]).then((galleryData) => {
-        const galleryHead = head(galleryData)
-        setGalleryHeads([...galleryHeads, galleryHead])
-      })
-    } else {
-      setFetching(false)
-    }
-  }, [galleryHeads])
-
   return (
     <div className='front-page'>
       <div className='galleries'>
-        {map(
-          (galleryHead) => (
-            <GalleryHead item={galleryHead} key={galleryHead.id} />
-          ),
-          galleryHeads
-        )}
-        {fetching && (
-          <div className='gallery-head-spinner'>
-            <Spinner />
-          </div>
-        )}
+        <SuspenseList revealOrder="forwards" tail="collapsed">
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[0]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[1]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[2]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[3]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[4]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[5]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[6]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[7]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[8]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[9]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[10]}/></Suspense>
+          <Suspense  fallback={<div className='gallery-head-spinner'><Spinner/></div>}><GalleryContainer gallery={galleries[11]}/></Suspense>
+        </SuspenseList>
       </div>
-      <Footer />
+      <Footer/>
     </div>
   )
+
 }
+
+
 
 export default FrontPage
